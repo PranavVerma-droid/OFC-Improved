@@ -13,7 +13,7 @@ Made by PranavVerma-droid
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YourUsername/OFC-Improved.git
+   git clone https://github.com/PranavVerma-droid/OFC-Improved.git
    cd OFC-Improved
    ```
 
