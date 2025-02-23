@@ -1,38 +1,58 @@
 # OpenFreezeCenter (OFC)
-- Provides a UI and automated scripts in order to control MSI Laptops. Check the #Supported section to see what models are supported.
-- Made for Linux, as MSI does not have a native Linux client.
-- if you do now want to run the GUI or if it is not working for you then try
-  # OpenFreezeCenter-Lite (OFC-l)
-  - Same thing just without GUI
-  - https://github.com/YoCodingMonster/OpenFreezeCenter-Lite
+A Linux fan control application for MSI laptops, providing temperature monitoring and fan curve control.
 
-# INSTALLATION / UPDATING
-- ```cd``` into the download folder and execute (UBUNTU)
-  - ```chmod +x file_1.sh```
-  - ```chmod +x file_2.sh```
-  - ```chmod +x install.sh```
-- Now run the ```install.sh```, That will install all the dependencies and create a virtual python environment on desktop for the script to work.
-- (ONLY FOR INSTALLATION) ```Reboot``` after the script complete the first run.
+Made by PranavVerma-droid
 
-# RUNNING
-- Run ```install.sh``` from the desktop folder. 
+## Features
+- GUI-based fan control
+- Temperature and RPM monitoring
+- Battery charging threshold control
+- Automatic, Basic, Advanced and Cooler Boost profiles
+- EC (Embedded Controller) read/write support
 
-## Supported Laptop models (tested)
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YourUsername/OFC-Improved.git
+   cd OFC-Improved
+   ```
+
+2. Make the install script executable:
+   ```bash
+   chmod +x install.sh
+   ```
+
+3. Run the installation script (this will also launch the app):
+   ```bash
+   ./install.sh
+   ```
+   The Application will generate an [config.py](default_config.py) file on the first run.
+
+4. Reboot your system after first installation (recommended):
+   ```bash
+   sudo reboot
+   ```
+
+## Running the Application
+After installation, simply run:
+```bash
+./install.sh
+```
+
+The application will start in a virtual environment automatically.
+
+## Supported Hardware
+Laptop Models (Tested):
 - MSI GP76 11UG
+- MSI GF73 11UC
 
-## Supported Linux Distro (tested)
-- Ubuntu
-
-## Issue format
-- ISSUE # [CPU] - [LAPTOP MODEL] - [LINUX DISTRO]
-  - ```Example``` ISSUE # i7-11800H - MSI GP76 11UG - UBUNTU 23.05
-
-## Feedback
-- Please provide suggestions under the Feedback discussion tab!
+Linux Distributions (Tested):
+- Ubuntu (and derivatives)
+- Linux Mint
 
 ## Goals
-- [X] Fan Control GUI
-- [X] Basic temperature and RPM monitoring
-- [ ] Advanced & Basic GUI control
-- [X] Battery Threshold
-- [ ] Webcam control
+<input checked="" disabled="" type="checkbox"> Fan Control GUI <br>
+<input checked="" disabled="" type="checkbox"> Basic temperature and RPM monitoring <br>
+<input disabled="" type="checkbox"> Advanced & Basic GUI control <br>
+<input checked="" disabled="" type="checkbox"> Battery Threshold <br>
+<input disabled="" type="checkbox"> Webcam control <br>

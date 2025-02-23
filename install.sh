@@ -1,124 +1,90 @@
 #!/bin/bash
 
-FLAG_1=0
-FLAG_2=0
-FLAG_3=0
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VENV_DIR="$SCRIPT_DIR/venv"
 
-##############################################################################################
-# Moving files to desktop and making virtual environment and installing all the dependencies #
-##############################################################################################
+print_status() {
+    echo -e "\e[1;34m----------$1----------\e[0m"
+}
 
-if test -f ~/Desktop/OFC/OFC.py;
-then
-    FLAG_3=1
-else
-    echo "This is a shell script to install all the dependencies required for this software to run."
-    echo "Dependencies required are as follows."
-    echo "1 -> python3-virtualenv AND python3-venv"
-    echo "2 -> PyGObject" 
-    echo "3 -> PyCairo" 
-    echo "4 -> Expert" 
-    echo "----------Creating Folder for Open Freeze Center----------"
-    cd ~/Desktop
-    mkdir OFC
-    echo "----------Installing python3-virtualenv AND python3-venv and other dependencies----------"
-    sudo apt update
-    sudo apt upgrade
-    sudo apt install python3-virtualenv python3-venv libgirepository1.0-dev libcairo2-dev
-    echo "----------Creating Virtual Environment for Open Freeze Center----------"
-    python3 -m venv ~/Desktop/OFC
-    echo "----------Virtual Environment for Open Freeze Center created----------"
-    echo "----------Installing PyGObject----------"
-    ~/Desktop/OFC/bin/pip3 install PyGObject
-    echo "----------Installing PyCairo----------"
-    ~/Desktop/OFC/bin/pip3 install pycairo
-    echo "----------Installing Expert----------"
-    sudo apt-get install expect
-    echo "----------Moving files to virtual environment----------"
-    cp -i ~/Downloads/OpenFreezeCenter-5/install.sh  ~/Desktop/OFC
-    cp -i ~/Downloads/OpenFreezeCenter-5/file_1.sh  ~/Desktop/OFC
-    cp -i ~/Downloads/OpenFreezeCenter-5/file_2.sh  ~/Desktop/OFC
-    cp -i ~/Downloads/OpenFreezeCenter-5/OFC.py  ~/Desktop/OFC
-    cp -i ~/Downloads/OpenFreezeCenter-5/README.md  ~/Desktop/OFC
-    cp -i ~/Downloads/OpenFreezeCenter-5/LICENSE  ~/Desktop/OFC
-    FLAG_3=1
+write_to_file() {
+    local file="$1"
+    local content="$2"
+    echo "$content" | sudo tee "$file" > /dev/null
+}
+
+print_status "Starting OpenFreezeCenter Installation"
+print_status "Made by PranavVerma-droid"
+echo "Dependencies required:"
+echo "1. python3-virtualenv and python3-venv"
+echo "2. PyGObject"
+echo "3. PyCairo"
+
+print_status "Installing Dependencies"
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-virtualenv python3-venv libgirepository1.0-dev libcairo2-dev
+
+if [ ! -d "$VENV_DIR" ]; then
+    print_status "Creating Virtual Environment"
+    python3 -m venv "$VENV_DIR"
+    
+    print_status "Installing Python Packages"
+    "$VENV_DIR/bin/pip3" install --upgrade pip
+    "$VENV_DIR/bin/pip3" install PyGObject pycairo
 fi
 
-################################
-# Prepairing the EC read/write #
-################################
+# Setup EC sys configuration
+print_status "Setting up EC read/write access"
 
-if test -d /etc/modprobe.d;
-then
-    if test -f /etc/modprobe.d/ec_sys.conf;
-    then
-        if grep -q "options ec_sys write_support=1" "/etc/modprobe.d/ec_sys.conf";
-        then FLAG_1=1
-        else
-            echo "----------Prepairing system for EC read/write----------"
-            cd ~/Desktop/OFC/
-            sudo ./file_1.sh
-            FLAG_1=1
-        fi
-    else
-        echo "----------Prepairing system for EC read/write----------"
-        sudo touch /etc/modprobe.d/ec_sys.conf
-        cd ~/Desktop/OFC/
-        sudo ./file_1.sh
-        FLAG_1=1
-    fi
-else
-    echo "----------Prepairing system for EC read/write----------"
-    mkdir /etc/modprobe.d
-    sudo touch /etc/modprobe.d/ec_sys.conf
-    cd ~/Desktop/OFC/
-    sudo ./file_1.sh
-    FLAG_1=1
+# Mount debugfs if not already mounted
+if ! mountpoint -q /sys/kernel/debug; then
+    print_status "Mounting debugfs"
+    sudo mount -t debugfs none /sys/kernel/debug
 fi
 
-if test -d /etc/modules-load.d;
-then
-    if test -f /etc/modules-load.d/ec_sys.conf;
-    then
-        if grep -q "ec_sys" "/etc/modules-load.d/ec_sys.conf";
-        then FLAG_2=1
-        else
-            echo "----------Prepairing system for EC read/write----------"
-            cd ~/Desktop/OFC/
-            sudo ./file_2.sh
-            FLAG_2=1
-        fi
-    else
-        echo "----------Prepairing system for EC read/write----------"
-        sudo touch /etc/modules-load.d/ec_sys.conf
-        cd ~/Desktop/OFC/
-        sudo ./file_2.sh
-        FLAG_2=1
-    fi
-else
-    echo "----------Prepairing system for EC read/write----------"
-    mkdir /etc/modules-load.d
-    sudo touch /etc/modules-load.d/ec_sys.conf
-    cd ~/Desktop/OFC/
-    sudo ./file_2.sh
-    FLAG_2=1
+# Load EC module with write support
+sudo modprobe ec_sys write_support=1
+
+# Create and write to ec_sys.conf files
+if [ ! -f "/etc/modprobe.d/ec_sys.conf" ] || ! grep -q "options ec_sys write_support=1" "/etc/modprobe.d/ec_sys.conf"; then
+    print_status "Configuring EC system write support"
+    write_to_file "/etc/modprobe.d/ec_sys.conf" "options ec_sys write_support=1"
 fi
 
-if [ "$FLAG_1" -eq 1 ] && [ "$FLAG_2" -eq 1 ];
-then
-    echo "----------EC read/write is enabled----------"
-else
-    echo "----------EC read/write is can not be enabled----------"
+if [ ! -f "/etc/modules-load.d/ec_sys.conf" ] || ! grep -q "ec_sys" "/etc/modules-load.d/ec_sys.conf"; then
+    print_status "Configuring EC system module"
+    write_to_file "/etc/modules-load.d/ec_sys.conf" "ec_sys"
 fi
 
-if [ "$FLAG_3" -eq 1 ];
-then
-    if test -f ~/Desktop/OFC/config.py;
-    then
-        echo "----------Running Software----------"
-        sudo nohup ~/Desktop/OFC/bin/python3 ~/Desktop/OFC/OFC.py
-    else
-        echo "----------Running Software----------"
-        sudo nohup ~/Desktop/OFC/bin/python3 ~/Desktop/OFC/OFC.py
-    fi
+# Create config.py if it doesn't exist
+if [ ! -f "$SCRIPT_DIR/config.py" ]; then
+    print_status "Creating configuration file"
+    cat > "$SCRIPT_DIR/config.py" << EOF
+PROFILE = 1
+AUTO_SPEED = [[0, 40, 48, 56, 64, 72, 80], [0, 48, 56, 64, 72, 79, 86]]
+ADV_SPEED = [[0, 40, 48, 56, 64, 72, 80], [0, 48, 56, 64, 72, 79, 86]]
+BASIC_OFFSET = 0
+CPU = 1
+AUTO_ADV_VALUES = [0xd4, 13, 141]
+COOLER_BOOSTER_OFF_ON_VALUES = [0x98, 2, 130]
+CPU_GPU_FAN_SPEED_ADDRESS = [[0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78], [0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90]]
+CPU_GPU_TEMP_ADDRESS = [0x68, 0x80]
+CPU_GPU_RPM_ADDRESS = [0xc8, 0xca]
+BATTERY_THRESHOLD_VALUE = 100
+EOF
+fi
+
+print_status "EC read/write setup completed"
+print_status "A system reboot is recommended for changes to take effect"
+
+# Make the main script executable
+chmod +x "$SCRIPT_DIR/OFC.py"
+
+# Run the application
+if [ -f "$SCRIPT_DIR/OFC.py" ]; then
+    print_status "Starting OpenFreezeCenter"
+    sudo "$VENV_DIR/bin/python3" "$SCRIPT_DIR/OFC.py"
+else
+    print_status "Error: OFC.py not found"
+    exit 1
 fi
